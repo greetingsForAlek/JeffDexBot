@@ -16,6 +16,9 @@ func New(token string) (*Bot, error) {
 		return nil, err
 	}
 
+	session.Identify.Intents |= discordgo.IntentGuildMessages |
+		discordgo.IntentMessageContent
+
 	b := &Bot {
 		Session: session,
 	}

@@ -9,6 +9,7 @@ import (
 
 func (b *Bot) registerHandlers() {
 	b.Session.AddHandler(handleInteraction)
+	b.Session.AddHandler(handleMessage)
 }
 
 func handleInteraction(
@@ -20,7 +21,7 @@ func handleInteraction(
 		respond(s, i, "pong")
 
 	case "guess":
-		character := game.Random()
+		character := game.StartRound(i.ChannelID)
 
 		err := s.InteractionRespond(
 			i.Interaction,
@@ -63,5 +64,34 @@ func respond(
 
 	if err != nil {
 		fmt.Println("Error responding to interaction: ", err)
+	}
+}
+
+func handleMessage(
+	s *discordgo.Session,
+	m *discordgo.MessageCreate,
+) {
+	if m.Author == nil || m.Author.Bot {
+		return
+	}
+
+	hasRound, correct, answer := game.Guess(
+		m.ChannelID,
+		m.Content,
+	)
+
+	if !hasRound {
+		return
+	}
+
+	if correct {
+		_, err := s.ChannelMessageSend(
+			m.ChannelID,
+			"🎉" + m.Author.Username + " guessed correctly! The character was **" + answer + "**",
+		)
+
+		if err != nil {
+			fmt.Println("Error sending winner message: ", err)
+		}
 	}
 }
