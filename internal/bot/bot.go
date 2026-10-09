@@ -31,19 +31,29 @@ func (b *Bot) Start() error {
 		return err
 	}
 
-	command := &discordgo.ApplicationCommand{
-		Name: "ping",
-		Description: "Replies with pong.",
+	commands := []*discordgo.ApplicationCommand {
+		{
+			Name: "ping",
+			Description: "Replies with pong.",
+		},
+		{
+			Name: "guess",
+			Description: "Guess the character shown in the image to add it to your collection!",
+		},
 	}
 
-	_, err = b.Session.ApplicationCommandCreate(
-		b.Session.State.User.ID,
-		"",
-		command,
-	)
+	for _, command := range commands {
+		_, err := b.Session.ApplicationCommandCreate(
+			b.Session.State.User.ID,
+			"",
+			command,
+		)
 
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
+
+		fmt.Println("Registered /" + command.Name)
 	}
 
 	fmt.Println("Bot is online!")
