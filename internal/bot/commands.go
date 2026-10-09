@@ -75,23 +75,27 @@ func handleMessage(
 		return
 	}
 
-	hasRound, correct, answer := game.Guess(
+	hasRound, correct, character := game.Guess(
 		m.ChannelID,
 		m.Content,
 	)
 
-	if !hasRound {
+	if !hasRound || !correct {
 		return
 	}
 
-	if correct {
-		_, err := s.ChannelMessageSend(
-			m.ChannelID,
-			"🎉" + m.Author.Username + " guessed correctly! The character was **" + answer + "**",
-		)
+	added := game.AddToCollection(m.Author.ID, character)
 
-		if err != nil {
-			fmt.Println("Error sending winner message: ", err)
-		}
+	var message string
+
+	if added {
+		message = "🎉 " + m.Author.Username + " guessed correctly and collected ** " + character.Name + "**!"
+	} else {
+		message = "🎉 " + m.Author.Username + " guessed correctly! But they already own **" + character.Name + "**, so no duplicate was added."
+	}
+
+	_, err := s.ChannelMessageSend(m.ChannelID, message)
+	if err != nil {
+		fmt.Println("Error sending winner message:", err)
 	}
 }
