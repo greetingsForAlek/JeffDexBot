@@ -2,6 +2,7 @@ package bot
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/greetingsForAlek/JeffDexBot/internal/game"
@@ -44,6 +45,46 @@ func handleInteraction(
 		if err != nil {
 			fmt.Println("Error responding to interaction:", err)
 		}
+	
+	case "collection":
+		characters := game.GetCollection(i.Member.User.ID)
+
+		if len(characters) == 0 {
+			respond(
+				s,
+				i,
+				"You haven't collected any characters yet! Use `/guess` to start playing. 🎮",
+			)
+			return
+		}
+
+		var description strings.Builder
+
+		for _, character := range characters {
+			description.WriteString("• **")
+			description.WriteString(character.Name)
+			description.WriteString("**\n")
+		}
+
+		err := s.InteractionRespond(
+			i.Interaction,
+			&discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Embeds: []*discordgo.MessageEmbed {
+						{
+							Title: "Your Character Collection",
+							Description: description.String(),
+						},
+					},
+					Flags: discordgo.MessageFlagsEphemeral,
+				},
+			},
+		)
+
+		if err != nil {
+			fmt.Println("Error responding to collection command:", err)
+		}
 	}
 }
 
@@ -75,23 +116,27 @@ func handleMessage(
 		return
 	}
 
-	hasRound, correct, answer := game.Guess(
+	hasRound, correct, character := game.Guess(
 		m.ChannelID,
 		m.Content,
 	)
 
-	if !hasRound {
+	if !hasRound || !correct {
 		return
 	}
 
-	if correct {
-		_, err := s.ChannelMessageSend(
-			m.ChannelID,
-			"🎉" + m.Author.Username + " guessed correctly! The character was **" + answer + "**",
-		)
+	added := game.AddToCollection(m.Author.ID, character)
 
-		if err != nil {
-			fmt.Println("Error sending winner message: ", err)
-		}
+	var message string
+
+	if added {
+		message = "🎉 " + m.Author.Username + " guessed correctly and collected ** " + character.Name + "**!"
+	} else {
+		message = "🎉 " + m.Author.Username + " guessed correctly! But they already own **" + character.Name + "**, so no duplicate was added."
+	}
+
+	_, err := s.ChannelMessageSend(m.ChannelID, message)
+	if err != nil {
+		fmt.Println("Error sending winner message:", err)
 	}
 }
