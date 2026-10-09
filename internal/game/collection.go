@@ -29,3 +29,17 @@ func AddToCollection (
 	collections[userID][character.ID] = character
 	return true
 }
+
+func GetCollection(userID string) []models.Character {
+	collectionsMu.Lock()
+	defer collectionsMu.Unlock()
+
+	playerCollection := collections[userID]
+	characters := make([]models.Character, 0, len(playerCollection))
+
+	for _, character := range playerCollection {
+		characters = append(characters, character)
+	}
+
+	return characters
+}
