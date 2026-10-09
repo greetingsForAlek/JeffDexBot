@@ -1,6 +1,10 @@
 package game
 
-import "github.com/greetingsForAlek/JeffDexBot/internal/models"
+import (
+	"math/rand/v2"
+
+	"github.com/greetingsForAlek/JeffDexBot/internal/models"
+)
 
 var characters = []models.Character {
 	{
@@ -13,4 +17,8 @@ var characters = []models.Character {
 		Name: "Rob",
 		ImageURL: "https://res.cloudinary.com/cwohba23/image/upload/v1786985433/Rob.png",
 	},
+}
+
+func Random() models.Character {
+	return characters[rand.IntN(len(characters))]
 }
