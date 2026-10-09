@@ -57,7 +57,6 @@ func (b *Bot) Start() error {
 	}
 
 	fmt.Println("Bot is online!")
-	fmt.Println("Registered /ping!")
 
 	return nil
 }
