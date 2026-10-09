@@ -2,6 +2,7 @@ package bot
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/greetingsForAlek/JeffDexBot/internal/game"
@@ -43,6 +44,46 @@ func handleInteraction(
 
 		if err != nil {
 			fmt.Println("Error responding to interaction:", err)
+		}
+	
+	case "collection":
+		characters := game.GetCollection(i.Member.User.ID)
+
+		if len(characters) == 0 {
+			respond(
+				s,
+				i,
+				"You haven't collected any characters yet! Use `/guess` to start playing. 🎮",
+			)
+			return
+		}
+
+		var description strings.Builder
+
+		for _, character := range characters {
+			description.WriteString("• **")
+			description.WriteString(character.Name)
+			description.WriteString("**\n")
+		}
+
+		err := s.InteractionRespond(
+			i.Interaction,
+			&discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Embeds: []*discordgo.MessageEmbed {
+						{
+							Title: "Your Character Collection",
+							Description: description.String(),
+						},
+					},
+					Flags: discordgo.MessageFlagsEphemeral,
+				},
+			},
+		)
+
+		if err != nil {
+			fmt.Println("Error responding to collection command:", err)
 		}
 	}
 }

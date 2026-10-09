@@ -43,6 +43,10 @@ func (b *Bot) Start() error {
 			Name: "guess",
 			Description: "Guess the character shown in the image to add it to your collection!",
 		},
+		{
+			Name: "collection",
+			Description: "View your collected characters!",
+		},
 	}
 
 	for _, command := range commands {
