@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/greetingsForAlek/JeffDexBot/internal/models"
 	_ "modernc.org/sqlite"
 )
 
@@ -67,4 +68,62 @@ func (d *Database) Init() error {
 	}
 
 	return nil
+}
+
+func (d *Database) AddCharacter (
+	id int,
+	name string,
+	imageURL string,
+) error {
+	query := `
+	INSERT INTO characters (id, name, image_url)
+	VALUES (?, ?, ?)
+	ON CONFLICT(id) DO UPDATE SET
+		name = excluded.name,
+		image_url = excluded.image_url;
+	`
+
+	_, err := d.DB.Exec(query, id, name, imageURL)
+	if err != nil {
+		return fmt.Errorf("add character: %w", err)
+	}
+
+	return nil
+}
+
+func (d *Database) GetCharacters() ([]models.Character, error) {
+	query := `
+	SELECT id, name, image_url
+	FROM characters
+	ORDER BY id;
+	`
+
+	rows, err := d.DB.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("query characters: %w", err)
+	}
+	defer rows.Close()
+
+	var characters []models.Character
+
+	for rows.Next() {
+		var character models.Character
+
+		err := rows.Scan(
+			&character.ID,
+			&character.Name,
+			&character.ImageURL,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("scan character: %w", err)
+		}
+
+		characters = append(characters, character)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate characters: %w", err)
+	}
+
+	return characters, nil
 }
