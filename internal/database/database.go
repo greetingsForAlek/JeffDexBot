@@ -39,3 +39,32 @@ func New() (*Database, error) {
 func (d *Database) Close() error {
 	return d.DB.Close()
 }
+
+func (d *Database) Init() error {
+	query := `
+	CREATE TABLE IF NOT EXISTS characters (
+		id INTEGER PRIMARY KEY,
+		name TEXT NOT NULL,
+		image_url TEXT NOT NULL
+	);
+
+	CREATE TABLE IF NOT EXISTS collections (
+		user_id TEXT NOT NULL,
+		character_id INTEGER NOT NULL,
+		collected_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+		PRIMARY KEY (user_id, character_id),
+
+		FOREIGN KEY (character_id)
+			REFERENCES characters(id)
+			ON DELETE CASCADE
+	);
+	`
+
+	_, err := d.DB.Exec(query)
+	if err != nil {
+		return fmt.Errorf("create database tables: %w", err)
+	}
+
+	return nil
+}
