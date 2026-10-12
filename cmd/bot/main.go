@@ -33,6 +33,12 @@ func main() {
 
 	fmt.Println("Database Initialized.")
 
+	if err := db.SeedCharacters(); err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Characters loaded into database.")
+
 	b, err := bot.New(token)
 	if err != nil {
 		panic(err)
