@@ -22,3 +22,7 @@ var characters = []models.Character {
 func Random() models.Character {
 	return characters[rand.IntN(len(characters))]
 }
+
+func AllCharacters() []models.Character {
+	return append([]models.Character(nil), characters...)
+}
