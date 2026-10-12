@@ -1,12 +1,13 @@
 package main
 
 import (
-	"os"
 	"fmt"
-	
-	"github.com/joho/godotenv"
+	"os"
+
 	"github.com/greetingsForAlek/JeffDexBot/internal/bot"
 	"github.com/greetingsForAlek/JeffDexBot/internal/database"
+	"github.com/greetingsForAlek/JeffDexBot/internal/game"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -38,6 +39,15 @@ func main() {
 	}
 
 	fmt.Println("Characters loaded into database.")
+
+	characters, err := db.GetCharacters()
+	if err != nil {
+		panic(err)
+	}
+
+	game.SetCharacters(characters)
+
+	fmt.Printf("Loaded %d characters from SQLite!\n", len(characters))
 
 	b, err := bot.New(token)
 	if err != nil {
