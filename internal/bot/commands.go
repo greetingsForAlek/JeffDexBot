@@ -10,7 +10,7 @@ import (
 
 func (b *Bot) registerHandlers() {
 	b.Session.AddHandler(handleInteraction)
-	b.Session.AddHandler(handleMessage)
+	b.Session.AddHandler(b.handleMessage)
 }
 
 func handleInteraction(
@@ -108,7 +108,7 @@ func respond(
 	}
 }
 
-func handleMessage(
+func (b *Bot) handleMessage(
 	s *discordgo.Session,
 	m *discordgo.MessageCreate,
 ) {
@@ -125,18 +125,30 @@ func handleMessage(
 		return
 	}
 
-	added := game.AddToCollection(m.Author.ID, character)
+	added, err := b.DB.AddToCollection(
+		m.Author.ID,
+		character.ID,
+	)
+
+	if err != nil {
+		fmt.Println("error saving collection: ", err)
+		_, _ = s.ChannelMessageSend(
+			m.ChannelID,
+			"Sorry, something went wrong saving your character. Please try again later or feel free to create a support ticket.",
+		)
+		return
+	}
 
 	var message string
 
 	if added {
-		message = "🎉 " + m.Author.Username + " guessed correctly and collected ** " + character.Name + "**!"
+		message = "🎉" + m.Author.Username + " guessed correctly and collected **" + character.Name + "**!"
 	} else {
-		message = "🎉 " + m.Author.Username + " guessed correctly! But they already own **" + character.Name + "**, so no duplicate was added."
+		message = "🎉" + m.Author.Username + " guessed correctly! They already own **" + character.Name + "**, so no duplicate was added."
 	}
 
-	_, err := s.ChannelMessageSend(m.ChannelID, message)
+	_, err = s.ChannelMessageSend(m.ChannelID, message)
 	if err != nil {
-		fmt.Println("Error sending winner message:", err)
+		fmt.Println("Error sending winner message: ", err)
 	}
 }

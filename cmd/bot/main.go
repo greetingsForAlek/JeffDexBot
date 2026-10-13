@@ -49,7 +49,7 @@ func main() {
 
 	fmt.Printf("Loaded %d characters from SQLite!\n", len(characters))
 
-	b, err := bot.New(token)
+	b, err := bot.New(token, db)
 	if err != nil {
 		panic(err)
 	}

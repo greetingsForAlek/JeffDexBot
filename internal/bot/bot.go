@@ -4,13 +4,15 @@ import (
 	"fmt"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/greetingsForAlek/JeffDexBot/internal/database"
 )
 
 type Bot struct {
 	Session *discordgo.Session
+	DB *database.Database
 }
 
-func New(token string) (*Bot, error) {
+func New(token string, db *database.Database) (*Bot, error) {
 	session, err := discordgo.New("Bot " + token)
 	if err != nil {
 		return nil, err
@@ -21,6 +23,7 @@ func New(token string) (*Bot, error) {
 
 	b := &Bot {
 		Session: session,
+		DB: db,
 	}
 
 	b.registerHandlers()
