@@ -127,3 +127,67 @@ func (d *Database) GetCharacters() ([]models.Character, error) {
 
 	return characters, nil
 }
+
+func (d *Database) AddToCollection(
+	userID string,
+	characterID int,
+) (bool, error) {
+	query := `
+	INSERT INTO collections (user_id, character_id)
+	VALUES (?, ?)
+	ON CONFLICT(user_id, character_id) DO NOTHING;
+	`
+
+	result, err := d.DB.Exec(query, userID, characterID)
+	if err != nil {
+		return false, fmt.Errorf("add to collection: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return false, fmt.Errorf("check collection insert: %w", err)
+	}
+
+	return rowsAffected > 0, nil
+}
+
+func (d *Database) GetCollection (
+	userID string,
+) ([]models.Character, error) {
+	query := `
+		SELECT c.id, c.name, c.image_url
+		FROM characters c
+		INNER JOIN collections col
+			ON col.character_id = c.id
+		WHERE col.user_id  = ?
+		ORDER BY col.collected_at, c.id;
+	`
+
+	rows, err := d.DB.Query(query, userID)
+	if err != nil {
+		return nil, fmt.Errorf("get collection: %w", err)
+	}
+	defer rows.Close()
+
+	var characters []models.Character
+
+	for rows.Next() {
+		var character models.Character
+
+		if err := rows.Scan(
+			&character.ID,
+			&character.Name,
+			&character.ImageURL,
+		); err != nil {
+			return nil, fmt.Errorf("scan collection character: %w", err)
+		}
+
+		characters = append(characters, character)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate collection: %w", err)
+	}
+
+	return characters, nil
+}
