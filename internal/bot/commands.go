@@ -9,11 +9,11 @@ import (
 )
 
 func (b *Bot) registerHandlers() {
-	b.Session.AddHandler(handleInteraction)
+	b.Session.AddHandler(b.handleInteraction)
 	b.Session.AddHandler(b.handleMessage)
 }
 
-func handleInteraction(
+func (b *Bot) handleInteraction(
 	s *discordgo.Session,
 	i *discordgo.InteractionCreate,
 ) {
@@ -47,13 +47,23 @@ func handleInteraction(
 		}
 	
 	case "collection":
-		characters := game.GetCollection(i.Member.User.ID)
+		if i.Member == nil  || i.Member.User == nil {
+			respond(s, i, "This command must be used in a server.")
+			return
+		}
+
+		characters, err := b.DB.GetCollection(i.Member.User.ID)
+		if err != nil {
+			fmt.Println("Error loading collection: ", err)
+			respond(s, i, "Sorry, I couldn't load your collection. Feel free to create a support ticket if needed.")
+			return
+		}
 
 		if len(characters) == 0 {
 			respond(
 				s,
 				i,
-				"You haven't collected any characters yet! Use `/guess` to start playing. 🎮",
+				"You haven't collected any characters yet! Use `/guess` to get started playing 🎮!",
 			)
 			return
 		}
@@ -66,18 +76,17 @@ func handleInteraction(
 			description.WriteString("**\n")
 		}
 
-		err := s.InteractionRespond(
+		err = s.InteractionRespond(
 			i.Interaction,
 			&discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
+				Data: &discordgo.InteractionResponseData {
 					Embeds: []*discordgo.MessageEmbed {
 						{
 							Title: "Your Character Collection",
 							Description: description.String(),
 						},
 					},
-					Flags: discordgo.MessageFlagsEphemeral,
 				},
 			},
 		)
