@@ -17,8 +17,21 @@ var characters = []models.Character {
 		Name: "Rob",
 		ImageURL: "https://res.cloudinary.com/cwohba23/image/upload/v1786985433/Rob.png",
 	},
+	{
+		ID: 3,
+		Name: "Mr No Internet",
+		ImageURL: "https://res.cloudinary.com/cwohba23/image/upload/v1786985444/MNI.png",
+	},
 }
 
 func Random() models.Character {
 	return characters[rand.IntN(len(characters))]
+}
+
+func SetCharacters(newCharacters []models.Character) {
+	characters = append([]models.Character(nil), newCharacters...)
+}
+
+func AllCharacters() []models.Character {
+	return append([]models.Character(nil), characters...)
 }
