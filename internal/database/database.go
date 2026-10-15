@@ -47,6 +47,7 @@ func (d *Database) Init() error {
 		id INTEGER PRIMARY KEY,
 		name TEXT NOT NULL,
 		image_url TEXT NOT NULL
+		rarity TEXT NOT NULL DEFAULT 'Common'
 	);
 
 	CREATE TABLE IF NOT EXISTS collections (
@@ -65,6 +66,10 @@ func (d *Database) Init() error {
 	_, err := d.DB.Exec(query)
 	if err != nil {
 		return fmt.Errorf("create database tables: %w", err)
+	}
+
+	if err := d.ensureRarityColumn(); err != nil {
+		return err
 	}
 
 	return nil
@@ -190,4 +195,53 @@ func (d *Database) GetCollection (
 	}
 
 	return characters, nil
+}
+
+func (d *Database) ensureRarityColumn() error {
+	rows, err := d.DB.Query("PRAGMA table_info(characters)")
+	if err != nil {
+		return fmt.Errorf("inspect characters table: %w", err)
+	}
+
+	hasRarity := false
+
+	for rows.Next() {
+		var (
+			cid int
+			name string
+			columnType string
+			notNull int
+			defaultValue sql.NullString
+			primaryKey int
+		)
+
+		if err := rows.Scan(
+			&cid,
+			&name,
+			&columnType,
+			&notNull,
+			&defaultValue,
+			&primaryKey,
+		); err != nil {
+			rows.Close()
+			return fmt.Errorf("inspect character column: %w", err)
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		rows.Close()
+		return fmt.Errorf("read character columns: %w", err)
+	}
+
+	if !hasRarity {
+		_, err := d.DB.Exec(`
+			ALTER TABLE characters
+			ADD COLUMN rarity TEXT NOT NULL DEFAULT 'Common'
+		`)
+		if err != nil {
+			return fmt.Errorf("add rarity column: %w", err)
+		}
+	}
+
+		return nil
 }
