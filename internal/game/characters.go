@@ -11,16 +11,19 @@ var characters = []models.Character {
 		ID: 1,
 		Name: "Jeff",
 		ImageURL: "https://res.cloudinary.com/cwohba23/image/upload/v1786985403/Jeff.png",
+		Rarity: "Common",
 	},
 	{
 		ID: 2,
 		Name: "Rob",
 		ImageURL: "https://res.cloudinary.com/cwohba23/image/upload/v1786985433/Rob.png",
+		Rarity: "Rare",
 	},
 	{
 		ID: 3,
 		Name: "Mr No Internet",
 		ImageURL: "https://res.cloudinary.com/cwohba23/image/upload/v1786985444/MNI.png",
+		Rarity: "Legendary",
 	},
 }
 

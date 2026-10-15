@@ -79,16 +79,18 @@ func (d *Database) AddCharacter (
 	id int,
 	name string,
 	imageURL string,
+	rarity string,
 ) error {
 	query := `
-	INSERT INTO characters (id, name, image_url)
-	VALUES (?, ?, ?)
+	INSERT INTO characters (id, name, image_url, rarity)
+	VALUES (?, ?, ?, ?)
 	ON CONFLICT(id) DO UPDATE SET
 		name = excluded.name,
-		image_url = excluded.image_url;
+		image_url = excluded.image_url,
+		rarity = excluded.rarity;
 	`
 
-	_, err := d.DB.Exec(query, id, name, imageURL)
+	_, err := d.DB.Exec(query, id, name, imageURL, rarity)
 	if err != nil {
 		return fmt.Errorf("add character: %w", err)
 	}
