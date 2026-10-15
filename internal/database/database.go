@@ -46,7 +46,7 @@ func (d *Database) Init() error {
 	CREATE TABLE IF NOT EXISTS characters (
 		id INTEGER PRIMARY KEY,
 		name TEXT NOT NULL,
-		image_url TEXT NOT NULL
+		image_url TEXT NOT NULL,
 		rarity TEXT NOT NULL DEFAULT 'Common'
 	);
 
@@ -100,7 +100,7 @@ func (d *Database) AddCharacter (
 
 func (d *Database) GetCharacters() ([]models.Character, error) {
 	query := `
-	SELECT id, name, image_url
+	SELECT id, name, image_url, rarity
 	FROM characters
 	ORDER BY id;
 	`
@@ -120,6 +120,7 @@ func (d *Database) GetCharacters() ([]models.Character, error) {
 			&character.ID,
 			&character.Name,
 			&character.ImageURL,
+			&character.Rarity,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("scan character: %w", err)
