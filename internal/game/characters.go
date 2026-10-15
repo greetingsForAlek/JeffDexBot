@@ -6,6 +6,19 @@ import (
 	"github.com/greetingsForAlek/JeffDexBot/internal/models"
 )
 
+type rarityWeight struct {
+	Rarity string
+	Weight int
+}
+
+var rarityWeights = []rarityWeight {
+	{Rarity: "Common", Weight: 50},
+	{Rarity: "Uncommon", Weight: 25},
+	{Rarity: "Rare", Weight: 15},
+	{Rarity: "Epic", Weight: 7},
+	{Rarity: "Legendary", Weight: 3},
+}
+
 var characters = []models.Character {
 	{
 		ID: 1,
