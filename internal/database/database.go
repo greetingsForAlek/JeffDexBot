@@ -205,8 +205,7 @@ func (d *Database) ensureRarityColumn() error {
 	if err != nil {
 		return fmt.Errorf("inspect characters table: %w", err)
 	}
-
-	hasRarity := false
+	defer rows.Close()
 
 	for rows.Next() {
 		var (
@@ -229,22 +228,29 @@ func (d *Database) ensureRarityColumn() error {
 			rows.Close()
 			return fmt.Errorf("inspect character column: %w", err)
 		}
+
+		if name == "rarity" {
+			return nil
+		}
 	}
 
 	if err := rows.Err(); err != nil {
 		rows.Close()
 		return fmt.Errorf("read character columns: %w", err)
 	}
-
-	if !hasRarity {
-		_, err := d.DB.Exec(`
-			ALTER TABLE characters
-			ADD COLUMN rarity TEXT NOT NULL DEFAULT 'Common'
-		`)
-		if err != nil {
-			return fmt.Errorf("add rarity column: %w", err)
-		}
+	
+	if err := rows.Close(); err != nil {
+		return fmt.Errorf("close character columns: %w", err)
 	}
 
-		return nil
+	_, err = d.DB.Exec(`
+		ALTER TABLE characters
+		ADD COLUMN rarity TEXT NOT NULL DEFAULT 'Common';
+	`)
+
+	if err != nil {
+		return fmt.Errorf("add rarity column: %w", err)
+	}
+
+	return nil
 }

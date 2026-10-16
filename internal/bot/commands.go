@@ -32,7 +32,7 @@ func (b *Bot) handleInteraction(
 					Embeds: []*discordgo.MessageEmbed {
 						{
 							Title: "Who is this character?",
-							Description: "Take a guess!",
+							Description: "Rarity: **" + character.Rarity + "**",
 							Image: &discordgo.MessageEmbedImage{
 								URL: character.ImageURL,
 							},
