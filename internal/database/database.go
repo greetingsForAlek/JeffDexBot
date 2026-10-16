@@ -61,6 +61,11 @@ func (d *Database) Init() error {
 			REFERENCES characters(id)
 			ON DELETE CASCADE
 	);
+
+	CREATE TABLE IF NOT EXISTS user_balances (
+		user_id PRIMARY KEY,
+		coins INTEGER DEFAULT 0
+	);
 	`
 
 	_, err := d.DB.Exec(query)
@@ -250,6 +255,45 @@ func (d *Database) ensureRarityColumn() error {
 
 	if err != nil {
 		return fmt.Errorf("add rarity column: %w", err)
+	}
+
+	return nil
+}
+
+func (d *Database) GetCoins(userID string) (int, error) {
+	var coins int
+
+	err := d.DB.QueryRow(`
+	SELECT coins
+	FROM user_balance
+	WHERE user_id = ?;
+	`, userID).Scan(&coins)
+
+	if err == sql.ErrNoRows {
+		return 0, nil
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("get user coins: %w", err)
+	}
+
+	return coins, nil
+}
+
+func (d *Database) AddCoins(userID string, amount int) error {
+	if amount < 0 {
+		return fmt.Errorf("coin amount cannot be negative")
+	}
+
+	_, err := d.DB.Exec(`
+	INSERT INTO user_balances (user_id, coins)
+	VALUES (?, ?)
+	ON CONFLICT(user_id) DO UPDATE SET
+		coins = coins + excluded.coins;
+	`, userID, amount)
+
+	if err != nil {
+		return fmt.Errorf("add user coins: %w", err)
 	}
 
 	return nil
