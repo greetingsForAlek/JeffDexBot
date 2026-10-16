@@ -38,6 +38,18 @@ var characters = []models.Character {
 		ImageURL: "https://res.cloudinary.com/cwohba23/image/upload/v1786985444/MNI.png",
 		Rarity: "Legendary",
 	},
+	{
+		ID: 4,
+		Name: "Mr. Squirt",
+		ImageURL: "https://res.cloudinary.com/cwohba23/image/upload/v1786985457/MrSquirt.png",
+		Rarity: "Uncommon",
+	},
+	{
+		ID: 5,
+		Name: "Bald Boi",
+		ImageURL: "https://res.cloudinary.com/cwohba23/image/upload/v1786985468/BaldBoi.png",
+		Rarity: "Epic",
+	},
 }
 
 func Random() models.Character {
