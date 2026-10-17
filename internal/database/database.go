@@ -46,7 +46,8 @@ func (d *Database) Init() error {
 	CREATE TABLE IF NOT EXISTS characters (
 		id INTEGER PRIMARY KEY,
 		name TEXT NOT NULL,
-		image_url TEXT NOT NULL
+		image_url TEXT NOT NULL,
+		rarity TEXT NOT NULL DEFAULT 'Common'
 	);
 
 	CREATE TABLE IF NOT EXISTS collections (
@@ -60,11 +61,20 @@ func (d *Database) Init() error {
 			REFERENCES characters(id)
 			ON DELETE CASCADE
 	);
+
+	CREATE TABLE IF NOT EXISTS user_balances (
+		user_id PRIMARY KEY,
+		coins INTEGER DEFAULT 0
+	);
 	`
 
 	_, err := d.DB.Exec(query)
 	if err != nil {
 		return fmt.Errorf("create database tables: %w", err)
+	}
+
+	if err := d.ensureRarityColumn(); err != nil {
+		return err
 	}
 
 	return nil
@@ -74,16 +84,18 @@ func (d *Database) AddCharacter (
 	id int,
 	name string,
 	imageURL string,
+	rarity string,
 ) error {
 	query := `
-	INSERT INTO characters (id, name, image_url)
-	VALUES (?, ?, ?)
+	INSERT INTO characters (id, name, image_url, rarity)
+	VALUES (?, ?, ?, ?)
 	ON CONFLICT(id) DO UPDATE SET
 		name = excluded.name,
-		image_url = excluded.image_url;
+		image_url = excluded.image_url,
+		rarity = excluded.rarity;
 	`
 
-	_, err := d.DB.Exec(query, id, name, imageURL)
+	_, err := d.DB.Exec(query, id, name, imageURL, rarity)
 	if err != nil {
 		return fmt.Errorf("add character: %w", err)
 	}
@@ -93,7 +105,7 @@ func (d *Database) AddCharacter (
 
 func (d *Database) GetCharacters() ([]models.Character, error) {
 	query := `
-	SELECT id, name, image_url
+	SELECT id, name, image_url, rarity
 	FROM characters
 	ORDER BY id;
 	`
@@ -113,6 +125,7 @@ func (d *Database) GetCharacters() ([]models.Character, error) {
 			&character.ID,
 			&character.Name,
 			&character.ImageURL,
+			&character.Rarity,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("scan character: %w", err)
@@ -190,4 +203,98 @@ func (d *Database) GetCollection (
 	}
 
 	return characters, nil
+}
+
+func (d *Database) ensureRarityColumn() error {
+	rows, err := d.DB.Query("PRAGMA table_info(characters)")
+	if err != nil {
+		return fmt.Errorf("inspect characters table: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var (
+			cid int
+			name string
+			columnType string
+			notNull int
+			defaultValue sql.NullString
+			primaryKey int
+		)
+
+		if err := rows.Scan(
+			&cid,
+			&name,
+			&columnType,
+			&notNull,
+			&defaultValue,
+			&primaryKey,
+		); err != nil {
+			rows.Close()
+			return fmt.Errorf("inspect character column: %w", err)
+		}
+
+		if name == "rarity" {
+			return nil
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		rows.Close()
+		return fmt.Errorf("read character columns: %w", err)
+	}
+	
+	if err := rows.Close(); err != nil {
+		return fmt.Errorf("close character columns: %w", err)
+	}
+
+	_, err = d.DB.Exec(`
+		ALTER TABLE characters
+		ADD COLUMN rarity TEXT NOT NULL DEFAULT 'Common';
+	`)
+
+	if err != nil {
+		return fmt.Errorf("add rarity column: %w", err)
+	}
+
+	return nil
+}
+
+func (d *Database) GetCoins(userID string) (int, error) {
+	var coins int
+
+	err := d.DB.QueryRow(`
+	SELECT coins
+	FROM user_balances
+	WHERE user_id = ?;
+	`, userID).Scan(&coins)
+
+	if err == sql.ErrNoRows {
+		return 0, nil
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("get user coins: %w", err)
+	}
+
+	return coins, nil
+}
+
+func (d *Database) AddCoins(userID string, amount int) error {
+	if amount < 0 {
+		return fmt.Errorf("coin amount cannot be negative")
+	}
+
+	_, err := d.DB.Exec(`
+	INSERT INTO user_balances (user_id, coins)
+	VALUES (?, ?)
+	ON CONFLICT(user_id) DO UPDATE SET
+		coins = coins + excluded.coins;
+	`, userID, amount)
+
+	if err != nil {
+		return fmt.Errorf("add user coins: %w", err)
+	}
+
+	return nil
 }

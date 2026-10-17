@@ -32,7 +32,7 @@ func (b *Bot) handleInteraction(
 					Embeds: []*discordgo.MessageEmbed {
 						{
 							Title: "Who is this character?",
-							Description: "Take a guess!",
+							Description: "Rarity: **" + character.Rarity + "**",
 							Image: &discordgo.MessageEmbedImage{
 								URL: character.ImageURL,
 							},
@@ -94,6 +94,33 @@ func (b *Bot) handleInteraction(
 		if err != nil {
 			fmt.Println("Error responding to collection command:", err)
 		}
+	case "wallet":
+		coins, err := b.DB.GetCoins(i.Member.User.ID)
+		if err != nil {
+			fmt.Println("error getting coin balance:", err)
+
+			err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "Sorry, something went wrong retrieving your balance. Please create a support ticket if needed.",
+					Flags: discordgo.MessageFlagsEphemeral,
+				},
+			})
+			if err != nil {
+				fmt.Println("error responding to balance command:", err)
+			}
+		}
+
+		err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: fmt.Sprintf("🪙 You currently have: **%d coins**!", coins),
+				Flags: discordgo.MessageFlagsEphemeral,
+			},
+		})
+		if err != nil {
+			fmt.Println("error responding to balance command:", err)
+		}
 	}
 }
 
@@ -151,9 +178,24 @@ func (b *Bot) handleMessage(
 	var message string
 
 	if added {
-		message = "🎉" + m.Author.Username + " guessed correctly and collected **" + character.Name + "**!"
+		message = "🎉" + m.Author.Username + "guessed correctly and collected **" + character.Name + "**!"
 	} else {
-		message = "🎉" + m.Author.Username + " guessed correctly! They already own **" + character.Name + "**, so no duplicate was added."
+		reward := game.DuplicateReward(character.Rarity)
+
+		if reward > 0 {
+			err := b.DB.AddCoins(m.Author.ID, reward)
+
+			if err != nil {
+				fmt.Println("error awarding duplicate coins: ", err)
+				_, _ = s.ChannelMessageSend(
+					m.ChannelID,
+					"Your duplicate was detected, but something went wrong awarding your coins. Please create a support ticket if needed.",
+				)
+				return
+			}
+		}
+
+		message = "🪙 " + m.Author.Username + " guessed correctly! They already own **" + character.Name + "**, so they earned **" + fmt.Sprint(reward) + " coins** for the duplicate!"
 	}
 
 	_, err = s.ChannelMessageSend(m.ChannelID, message)

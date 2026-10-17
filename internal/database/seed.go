@@ -14,6 +14,7 @@ func (d *Database) SeedCharacters() error {
 			character.ID,
 			character.Name,
 			character.ImageURL,
+			character.Rarity,
 		)
 
 		if err != nil {
