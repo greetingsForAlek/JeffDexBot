@@ -151,9 +151,24 @@ func (b *Bot) handleMessage(
 	var message string
 
 	if added {
-		message = "🎉" + m.Author.Username + " guessed correctly and collected **" + character.Name + "**!"
+		message = "🎉" + m.Author.Username + "guessed correctly and collected **" + character.Name + "**!"
 	} else {
-		message = "🎉" + m.Author.Username + " guessed correctly! They already own **" + character.Name + "**, so no duplicate was added."
+		reward := game.DuplicateReward(character.Rarity)
+
+		if reward > 0 {
+			err := b.DB.AddCoins(m.Author.ID, reward)
+
+			if err != nil {
+				fmt.Println("error awarding duplicate coins: ", err)
+				_, _ = s.ChannelMessageSend(
+					m.ChannelID,
+					"Your duplicate was detected, but something went wrong awarding your coins. Please create a support ticket if needed.",
+				)
+				return
+			}
+		}
+
+		message = "🪙 " + m.Author.Username + " guessed correctly! They already own **" + character.Name + "**, so they earned **" + fmt.Sprint(reward) + " coins** for the duplicate!"
 	}
 
 	_, err = s.ChannelMessageSend(m.ChannelID, message)
