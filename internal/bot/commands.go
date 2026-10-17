@@ -94,6 +94,33 @@ func (b *Bot) handleInteraction(
 		if err != nil {
 			fmt.Println("Error responding to collection command:", err)
 		}
+	case "balance":
+		coins, err := b.DB.GetCoins(i.Member.User.ID)
+		if err != nil {
+			fmt.Println("error getting coin balance:", err)
+
+			err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "Sorry, something went wrong retrieving your balance. Please create a support ticket if needed.",
+					Flags: discordgo.MessageFlagsEphemeral,
+				},
+			})
+			if err != nil {
+				fmt.Println("error responding to balance command:", err)
+			}
+		}
+
+		err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: fmt.Sprintf("🪙 You currently have: **%d coins**!", coins),
+				Flags: discordgo.MessageFlagsEphemeral,
+			},
+		})
+		if err != nil {
+			fmt.Println("error responding to balance command:", err)
+		}
 	}
 }
 

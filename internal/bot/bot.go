@@ -50,6 +50,10 @@ func (b *Bot) Start() error {
 			Name: "collection",
 			Description: "View your collected characters!",
 		},
+		{
+			Name: "balance",
+			Description: "Check your coins balance!",
+		},
 	}
 
 	for _, command := range commands {
