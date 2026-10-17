@@ -51,8 +51,8 @@ func (b *Bot) Start() error {
 			Description: "View your collected characters!",
 		},
 		{
-			Name: "balance",
-			Description: "Check your coins balance!",
+			Name: "wallet",
+			Description: "Check your coins wallet!",
 		},
 	}
 
@@ -68,6 +68,18 @@ func (b *Bot) Start() error {
 		}
 
 		fmt.Println("Registered /" + command.Name)
+	}
+
+	registered, err := b.Session.ApplicationCommands(
+    	b.Session.State.User.ID,
+    	"",
+	)
+	if err != nil {
+    	return fmt.Errorf("list registered commands: %w", err)
+	}
+
+	for _, command := range registered {
+    	fmt.Println("Discord command:", command.Name)
 	}
 
 	fmt.Println("Bot is online!")

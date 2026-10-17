@@ -265,7 +265,7 @@ func (d *Database) GetCoins(userID string) (int, error) {
 
 	err := d.DB.QueryRow(`
 	SELECT coins
-	FROM user_balance
+	FROM user_balances
 	WHERE user_id = ?;
 	`, userID).Scan(&coins)
 

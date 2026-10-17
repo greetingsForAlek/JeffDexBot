@@ -94,7 +94,7 @@ func (b *Bot) handleInteraction(
 		if err != nil {
 			fmt.Println("Error responding to collection command:", err)
 		}
-	case "balance":
+	case "wallet":
 		coins, err := b.DB.GetCoins(i.Member.User.ID)
 		if err != nil {
 			fmt.Println("error getting coin balance:", err)
