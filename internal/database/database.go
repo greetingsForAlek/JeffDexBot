@@ -298,3 +298,34 @@ func (d *Database) AddCoins(userID string, amount int) error {
 
 	return nil
 }
+
+func (d *Database) GetCollectedCharacterIDs(userID string) (map[int]bool, error) {
+	rows, err := d.DB.Query(`
+	SELECT character_id
+	FROM collections
+	WHERE user_id = ?
+	`, userID)
+
+	if err != nil {
+		return nil, fmt.Errorf("get collected character IDs: %w", err)
+	}
+	defer rows.Close()
+
+	collected := make(map[int]bool)
+
+	for rows.Next() {
+		var characterID int
+
+		if err := rows.Scan(&characterID); err != nil {
+			return nil, fmt.Errorf("scan collected character ID: %w", err)
+		}
+
+		collected[characterID] = true
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("read collected character IDs: %w", err)
+	}
+
+	return collected, nil
+}
