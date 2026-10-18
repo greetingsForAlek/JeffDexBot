@@ -1,2 +1,4 @@
 .env
-*.db
+character-bot.db
+character-bot.db-shm
+character-bot.db-wal
