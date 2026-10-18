@@ -144,6 +144,27 @@ func respond(
 	}
 }
 
+func respondEphemeral(
+	s *discordgo.Session,
+	i *discordgo.InteractionCreate,
+	message string,
+) {
+	err := s.InteractionRespond(
+		i.Interaction,
+		&discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: message,
+				Flags: discordgo.MessageFlagsEphemeral,
+			},
+		},
+	)
+
+	if err != nil {
+		fmt.Println("error sending ephemeral response:", err)
+	}
+}
+
 func (b *Bot) handleMessage(
 	s *discordgo.Session,
 	m *discordgo.MessageCreate,
