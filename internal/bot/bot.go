@@ -54,6 +54,10 @@ func (b *Bot) Start() error {
 			Name: "wallet",
 			Description: "Check your coins wallet!",
 		},
+		{
+			Name: "index",
+			Description: "View your character collection progress",
+		},
 	}
 
 	for _, command := range commands {

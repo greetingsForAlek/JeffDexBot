@@ -121,6 +121,66 @@ func (b *Bot) handleInteraction(
 		if err != nil {
 			fmt.Println("error responding to balance command:", err)
 		}
+	
+	case "index":
+		userID := i.Member.User.ID
+
+		characters, err := b.DB.GetCharacters()
+		if err != nil {
+			fmt.Println("error getting character index:", err)
+			respondEphemeral(s, i, "Sorry, something went wrong loading the character index. Please create a support ticket if needed.")
+			return
+		}
+
+		collected, err := b.DB.GetCollectedCharacterIDs(userID)
+		if err != nil {
+			fmt.Println("error getting collected character IDs:", err)
+			respondEphemeral(s, i, "Sorry, something went wrong loading your collection progress. Please create a support ticket if needed.")
+			return
+		}
+
+		var description strings.Builder
+		totalCollected := 0
+
+		for _, character := range characters {
+			if collected[character.ID] {
+				fmt.Fprintf(
+					&description,
+					"✅**%s** - %s\n",
+					character.Name,
+					character.Rarity,
+				)
+				totalCollected++
+			} else {
+				fmt.Fprintf(
+					&description,
+					"❓ **???** - %s\n",
+					character.Rarity,
+				)
+			}
+		}
+
+		embed := &discordgo.MessageEmbed {
+			Title: "📖 Character Index",
+			Description: fmt.Sprintf(
+				"Collected **%d/%d** characters\n\n%s",
+				totalCollected,
+				len(characters),
+				description.String(),
+			),
+			Color: 0x5865F2,
+		}
+
+		err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Embeds: []*discordgo.MessageEmbed{embed},
+				Flags: discordgo.MessageFlagsEphemeral,
+			},
+		})
+		if err != nil {
+			fmt.Println("error responding to index command:", err)
+		}
 	}
 }
 
@@ -141,6 +201,27 @@ func respond(
 
 	if err != nil {
 		fmt.Println("Error responding to interaction: ", err)
+	}
+}
+
+func respondEphemeral(
+	s *discordgo.Session,
+	i *discordgo.InteractionCreate,
+	message string,
+) {
+	err := s.InteractionRespond(
+		i.Interaction,
+		&discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: message,
+				Flags: discordgo.MessageFlagsEphemeral,
+			},
+		},
+	)
+
+	if err != nil {
+		fmt.Println("error sending ephemeral response:", err)
 	}
 }
 
