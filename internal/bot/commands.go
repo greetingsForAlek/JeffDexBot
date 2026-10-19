@@ -259,7 +259,7 @@ func (b *Bot) handleMessage(
 	var message string
 
 	if added {
-		message = "🎉" + m.Author.Username + "guessed correctly and collected **" + character.Name + "**!"
+		message = "🎉" + m.Author.Username + " guessed correctly and collected **" + character.Name + "**!"
 	} else {
 		reward := game.DuplicateReward(character.Rarity)
 
