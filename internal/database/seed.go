@@ -3,12 +3,10 @@ package database
 import (
 	"fmt"
 
-	"github.com/greetingsForAlek/JeffDexBot/internal/game"
+	"github.com/greetingsForAlek/JeffDexBot/internal/models"
 )
 
-func (d *Database) SeedCharacters() error {
-	characters := game.AllCharacters()
-
+func (d *Database) SeedCharacters(characters []models.Character) error {
 	for _, character := range characters {
 		err := d.AddCharacter(
 			character.ID,
