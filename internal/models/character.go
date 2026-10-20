@@ -1,8 +1,8 @@
 package models
 
 type Character struct {
-	ID int
-	Name string
-	ImageURL string
-	Rarity string
+	ID int `json:"id"`
+	Name string `json:"name"`
+	ImageURL string `json:"image_url"`
+	Rarity string `json:"rarity"`
 }
