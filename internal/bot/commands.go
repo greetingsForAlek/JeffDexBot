@@ -6,6 +6,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/greetingsForAlek/JeffDexBot/internal/game"
+	"github.com/greetingsForAlek/JeffDexBot/internal/models"
 )
 
 func (b *Bot) registerHandlers() {
@@ -282,5 +283,52 @@ func (b *Bot) handleMessage(
 	_, err = s.ChannelMessageSend(m.ChannelID, message)
 	if err != nil {
 		fmt.Println("Error sending winner message: ", err)
+	}
+}
+
+func buildIndexEmbed(
+	characters []models.Character,
+	collected map[int]bool,
+	page int,
+	totalCollected int,
+) *discordgo.MessageEmbed {
+	const pageSize = 10
+
+	start := page * pageSize
+	end := start + pageSize
+
+	var description strings.Builder
+
+	for _, character := range characters[start:end] {
+		if collected[character.ID] {
+			fmt.Fprintf(
+				&description,
+				"✅ **%s** - %s\n",
+				character.Name,
+				character.Rarity,
+			)
+		} else {
+			fmt.Fprintf(
+				&description,
+				"❓ **???** - %s\n",
+				character.Rarity,
+			)
+		}
+	}
+
+	totalPages := (len(characters) + pageSize - 1) / pageSize
+
+	return &discordgo.MessageEmbed{
+		Title: "📖 Character Index",
+		Description: fmt.Sprintf(
+			"Collected **%d/%d** characters\n\n%s",
+			totalCollected,
+			len(characters),
+			description.String(),
+		),
+		Footer: &discordgo.MessageEmbedFooter{
+			Text: fmt.Sprintf("Page %d/%d", page+1, totalPages),
+		},
+		Color: 0x5865F2,
 	}
 }
