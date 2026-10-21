@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"net/url"
 
 	"github.com/greetingsForAlek/JeffDexBot/internal/models"
 )
@@ -58,10 +59,12 @@ func LoadCharacters(path string) ([]models.Character, error) {
 			)
 		}
 
-		if character.ImageURL == "" {
+		parsedURL, err := url.ParseRequestURI(character.ImageURL)
+		if err != nil || parsedURL.Scheme != "https" || parsedURL.Host == "" {
 			return nil, fmt.Errorf(
-				"character %q has no image URL",
+				"character %q has no valid image URL: %q (must be valid HTTPS URL)",
 				character.Name,
+				character.ImageURL,
 			)
 		}
 
