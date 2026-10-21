@@ -140,47 +140,51 @@ func (b *Bot) handleInteraction(
 			return
 		}
 
-		var description strings.Builder
 		totalCollected := 0
-
 		for _, character := range characters {
 			if collected[character.ID] {
-				fmt.Fprintf(
-					&description,
-					"✅**%s** - %s\n",
-					character.Name,
-					character.Rarity,
-				)
 				totalCollected++
-			} else {
-				fmt.Fprintf(
-					&description,
-					"❓ **???** - %s\n",
-					character.Rarity,
-				)
 			}
 		}
 
-		embed := &discordgo.MessageEmbed {
-			Title: "📖 Character Index",
-			Description: fmt.Sprintf(
-				"Collected **%d/%d** characters\n\n%s",
-				totalCollected,
-				len(characters),
-				description.String(),
-			),
-			Color: 0x5865F2,
+		const pageSize = 10
+		totalPages := (len(characters) + pageSize - 1) / pageSize
+
+		embed := buildIndexEmbed(characters, collected, 0, totalCollected)
+
+		var components []discordgo.MessageComponent
+
+		if totalPages > 1 {
+			components = []discordgo.MessageComponent{
+				discordgo.ActionsRow{
+					Components: []discordgo.MessageComponent{
+						discordgo.Button{
+							Label: "Previous",
+							Style: discordgo.SecondaryButton,
+							CustomID: "index_prev",
+							Disabled: true,
+						},
+						discordgo.Button{
+							Label: "Next",
+							Style: discordgo.PrimaryButton,
+							CustomID: "index_next",
+						},
+					},
+				},
+			}
 		}
 
 		err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Embeds: []*discordgo.MessageEmbed{embed},
+				Components: components,
 				Flags: discordgo.MessageFlagsEphemeral,
 			},
 		})
+
 		if err != nil {
-			fmt.Println("error responding to index command:", err)
+			fmt.Println("error responding to index command: ", err)
 		}
 	}
 }
