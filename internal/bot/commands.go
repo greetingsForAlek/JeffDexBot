@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sort"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/greetingsForAlek/JeffDexBot/internal/game"
@@ -138,6 +139,25 @@ func (b *Bot) handleInteraction(
 			respondEphemeral(s, i, "Sorry, something went wrong loading the character index. Please create a support ticket if needed.")
 			return
 		}
+
+		rarityOrder := map[string]int {
+			"Common": 0,
+			"Uncommon": 1,
+			"Rare": 2,
+			"Epic": 3,
+			"Legendary": 4,
+		}
+
+		sort.Slice(characters, func(i, j int) bool {
+			rarityI := rarityOrder[characters[i].Rarity]
+			rarityJ := rarityOrder[characters[j].Rarity]
+
+			if rarityI != rarityJ {
+				return rarityI < rarityJ
+			}
+
+			return strings.ToLower(characters[i].Name) < strings.ToLower(characters[j].Name)
+		})
 
 		collected, err := b.DB.GetCollectedCharacterIDs(userID)
 		if err != nil {
