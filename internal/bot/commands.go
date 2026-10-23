@@ -167,13 +167,13 @@ func (b *Bot) handleInteraction(
 						discordgo.Button{
 							Label: "Previous",
 							Style: discordgo.SecondaryButton,
-							CustomID: "index_0",
+							CustomID: "index_page_0",
 							Disabled: true,
 						},
 						discordgo.Button{
 							Label: "Next",
 							Style: discordgo.PrimaryButton,
-							CustomID: "index_1",
+							CustomID: "index_page_1",
 						},
 					},
 				},
@@ -307,6 +307,10 @@ func buildIndexEmbed(
 	start := page * pageSize
 	end := start + pageSize
 
+	if end > len(characters) {
+		end = len(characters)
+	}
+
 	var description strings.Builder
 
 	for _, character := range characters[start:end] {
@@ -347,6 +351,15 @@ func (b *Bot) handleIndexButton(
 	s *discordgo.Session,
 	i *discordgo.InteractionCreate,
 ) {
+	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+    	Type: discordgo.InteractionResponseDeferredMessageUpdate,
+	})
+
+	if err != nil {
+    	fmt.Println("Error acknowledging index button:", err)
+    	return
+	}
+
 	data := i.MessageComponentData()
 
 	if !strings.HasPrefix(data.CustomID, "index_page_") {
@@ -420,19 +433,18 @@ func (b *Bot) handleIndexButton(
 		}
 	}
 
-	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Embeds: []*discordgo.MessageEmbed {
-				buildIndexEmbed(characters, collected, page, totalCollected),
-
-			},
-			Components: components,
-		},
-	})
+	_, err = s.InteractionResponseEdit(
+    	i.Interaction,
+    	&discordgo.WebhookEdit{
+        	Embeds: &[]*discordgo.MessageEmbed{
+            	buildIndexEmbed(characters, collected, page, totalCollected),
+        	},
+        	Components: &components,
+    	},
+	)
 
 	if err != nil {
-		fmt.Println("Error updating character index:", err)
+    	fmt.Println("Error updating character index:", err)
 	}
 }
 

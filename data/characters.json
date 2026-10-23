@@ -58,5 +58,17 @@
         "name": "Top Hat Tom",
         "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1786986756/TopHatTom.png",
         "rarity": "Common"
+    },
+    {
+        "id": 11,
+        "name": "Mr Fries",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1786986671/MrFries.png",
+        "rarity": "Common"
+    },
+    {
+        "id": 12,
+        "name": "Mr Sprinkle",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1786986683/MrSprinkle.png",
+        "rarity": "Common"
     }
 ]
