@@ -19,6 +19,13 @@ func main() {
 		panic("DISCORD_TOKEN is not set.")
 	}
 
+	characters, err := game.LoadCharacters("data/characters.json")
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("Loaded characters from JSON!\n")
+
 	db, err := database.New()
 	if err != nil {
 		panic(err)
@@ -31,20 +38,13 @@ func main() {
 
 	fmt.Println("Database Initialized.")
 
-	if err := db.SeedCharacters(); err != nil {
+	if err := db.SeedCharacters(characters); err != nil {
 		panic(err)
 	}
 
 	fmt.Println("Characters loaded into database.")
 
-	characters, err := db.GetCharacters()
-	if err != nil {
-		panic(err)
-	}
-
 	game.SetCharacters(characters)
-
-	fmt.Printf("Loaded %d characters from SQLite!\n", len(characters))
 
 	b, err := bot.New(token, db)
 	if err != nil {

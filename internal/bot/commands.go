@@ -2,10 +2,13 @@ package bot
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
+	"sort"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/greetingsForAlek/JeffDexBot/internal/game"
+	"github.com/greetingsForAlek/JeffDexBot/internal/models"
 )
 
 func (b *Bot) registerHandlers() {
@@ -17,6 +20,11 @@ func (b *Bot) handleInteraction(
 	s *discordgo.Session,
 	i *discordgo.InteractionCreate,
 ) {
+	if i.Type == discordgo.InteractionMessageComponent {
+		b.handleIndexButton(s, i)
+		return
+	}
+
 	switch i.ApplicationCommandData().Name {
 	case "ping":
 		respond(s, i, "pong")
@@ -132,6 +140,25 @@ func (b *Bot) handleInteraction(
 			return
 		}
 
+		rarityOrder := map[string]int {
+			"Common": 0,
+			"Uncommon": 1,
+			"Rare": 2,
+			"Epic": 3,
+			"Legendary": 4,
+		}
+
+		sort.Slice(characters, func(i, j int) bool {
+			rarityI := rarityOrder[characters[i].Rarity]
+			rarityJ := rarityOrder[characters[j].Rarity]
+
+			if rarityI != rarityJ {
+				return rarityI < rarityJ
+			}
+
+			return strings.ToLower(characters[i].Name) < strings.ToLower(characters[j].Name)
+		})
+
 		collected, err := b.DB.GetCollectedCharacterIDs(userID)
 		if err != nil {
 			fmt.Println("error getting collected character IDs:", err)
@@ -139,47 +166,51 @@ func (b *Bot) handleInteraction(
 			return
 		}
 
-		var description strings.Builder
 		totalCollected := 0
-
 		for _, character := range characters {
 			if collected[character.ID] {
-				fmt.Fprintf(
-					&description,
-					"✅**%s** - %s\n",
-					character.Name,
-					character.Rarity,
-				)
 				totalCollected++
-			} else {
-				fmt.Fprintf(
-					&description,
-					"❓ **???** - %s\n",
-					character.Rarity,
-				)
 			}
 		}
 
-		embed := &discordgo.MessageEmbed {
-			Title: "📖 Character Index",
-			Description: fmt.Sprintf(
-				"Collected **%d/%d** characters\n\n%s",
-				totalCollected,
-				len(characters),
-				description.String(),
-			),
-			Color: 0x5865F2,
+		const pageSize = 10
+		totalPages := (len(characters) + pageSize - 1) / pageSize
+
+		embed := buildIndexEmbed(characters, collected, 0, totalCollected)
+
+		var components []discordgo.MessageComponent
+
+		if totalPages > 1 {
+			components = []discordgo.MessageComponent{
+				discordgo.ActionsRow{
+					Components: []discordgo.MessageComponent{
+						discordgo.Button{
+							Label: "Previous",
+							Style: discordgo.SecondaryButton,
+							CustomID: "index_page_0",
+							Disabled: true,
+						},
+						discordgo.Button{
+							Label: "Next",
+							Style: discordgo.PrimaryButton,
+							CustomID: "index_page_1",
+						},
+					},
+				},
+			}
 		}
 
 		err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Embeds: []*discordgo.MessageEmbed{embed},
+				Components: components,
 				Flags: discordgo.MessageFlagsEphemeral,
 			},
 		})
+
 		if err != nil {
-			fmt.Println("error responding to index command:", err)
+			fmt.Println("error responding to index command: ", err)
 		}
 	}
 }
@@ -259,7 +290,7 @@ func (b *Bot) handleMessage(
 	var message string
 
 	if added {
-		message = "🎉" + m.Author.Username + "guessed correctly and collected **" + character.Name + "**!"
+		message = "🎉" + m.Author.Username + " guessed correctly and collected **" + character.Name + "**!"
 	} else {
 		reward := game.DuplicateReward(character.Rarity)
 
@@ -282,5 +313,175 @@ func (b *Bot) handleMessage(
 	_, err = s.ChannelMessageSend(m.ChannelID, message)
 	if err != nil {
 		fmt.Println("Error sending winner message: ", err)
+	}
+}
+
+func buildIndexEmbed(
+	characters []models.Character,
+	collected map[int]bool,
+	page int,
+	totalCollected int,
+) *discordgo.MessageEmbed {
+	const pageSize = 10
+
+	start := page * pageSize
+	end := start + pageSize
+
+	if end > len(characters) {
+		end = len(characters)
+	}
+
+	var description strings.Builder
+
+	for _, character := range characters[start:end] {
+		if collected[character.ID] {
+			fmt.Fprintf(
+				&description,
+				"✅ **%s** - %s\n",
+				character.Name,
+				character.Rarity,
+			)
+		} else {
+			fmt.Fprintf(
+				&description,
+				"❓ **???** - %s\n",
+				character.Rarity,
+			)
+		}
+	}
+
+	totalPages := (len(characters) + pageSize - 1) / pageSize
+
+	return &discordgo.MessageEmbed{
+		Title: "📖 Character Index",
+		Description: fmt.Sprintf(
+			"Collected **%d/%d** characters\n\n%s",
+			totalCollected,
+			len(characters),
+			description.String(),
+		),
+		Footer: &discordgo.MessageEmbedFooter{
+			Text: fmt.Sprintf("Page %d/%d", page+1, totalPages),
+		},
+		Color: 0x5865F2,
+	}
+}
+
+func (b *Bot) handleIndexButton(
+	s *discordgo.Session,
+	i *discordgo.InteractionCreate,
+) {
+	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+    	Type: discordgo.InteractionResponseDeferredMessageUpdate,
+	})
+
+	if err != nil {
+    	fmt.Println("Error acknowledging index button:", err)
+    	return
+	}
+
+	data := i.MessageComponentData()
+
+	if !strings.HasPrefix(data.CustomID, "index_page_") {
+		return
+	}
+
+	page, err := strconv.Atoi(strings.TrimPrefix(data.CustomID, "index_page_"))
+	if err != nil {
+		respondComponentError(s, i, "Invalid index page.")
+		return
+	}
+
+	if i.Member == nil || i.Member.User == nil {
+		respondComponentError(s, i, "The index can only be used in a server")
+		return
+	}
+
+	characters, err := b.DB.GetCharacters()
+	if err != nil {
+		fmt.Println("Error loading character index:", err)
+		respondComponentError(s, i, "Sorry, I couldn't load the character index.")
+		return
+	}
+
+	collected, err := b.DB.GetCollectedCharacterIDs(i.Member.User.ID)
+	if err != nil {
+		fmt.Println("Error loading collected character IDs:", err)
+		respondComponentError(s, i, "Sorry, I couldn't load your collection progress.")
+		return
+	}
+
+	totalCollected := 0
+	for _, character := range characters {
+		if collected[character.ID] {
+			totalCollected++
+		}
+	}
+
+	const pageSize = 10
+	totalPages := (len(characters) + pageSize - 1) / pageSize
+
+	if totalPages == 0 {
+		respondComponentError(s, i, "There are no characters in the index.")
+		return
+	}
+
+	if page >= totalPages {
+		page = totalPages - 1
+	}
+
+	var components []discordgo.MessageComponent
+
+	if totalPages > 1 {
+		components = []discordgo.MessageComponent{
+			discordgo.ActionsRow{
+				Components: []discordgo.MessageComponent{
+					discordgo.Button{
+						Label: "Previous",
+						Style: discordgo.SecondaryButton,
+						CustomID: fmt.Sprintf("index_page_%d", page-1),
+						Disabled: page == 0,
+					},
+					discordgo.Button{
+						Label: "Next",
+						Style: discordgo.PrimaryButton,
+						CustomID: fmt.Sprintf("index_page_%d", page+1),
+						Disabled: page == totalPages - 1,
+					},
+				},
+			},
+		}
+	}
+
+	_, err = s.InteractionResponseEdit(
+    	i.Interaction,
+    	&discordgo.WebhookEdit{
+        	Embeds: &[]*discordgo.MessageEmbed{
+            	buildIndexEmbed(characters, collected, page, totalCollected),
+        	},
+        	Components: &components,
+    	},
+	)
+
+	if err != nil {
+    	fmt.Println("Error updating character index:", err)
+	}
+}
+
+func respondComponentError(
+	s *discordgo.Session,
+	i *discordgo.InteractionCreate,
+	message string,
+) {
+	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: message,
+			Flags: discordgo.MessageFlagsEphemeral,
+		},
+	})
+
+	if err != nil {
+		fmt.Println("Error responding to index button:", err)
 	}
 }

@@ -1,0 +1,74 @@
+[
+    {
+        "id": 1,
+        "name": "Jeff",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1786985403/Jeff.png",
+        "rarity": "Common"
+    },
+    {
+        "id": 2,
+        "name": "Rob",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1786985433/Rob.png",
+        "rarity": "Common"
+    },
+    {
+        "id": 3,
+        "name": "Mr No Internet",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1786985444/MNI.png",
+        "rarity": "Common"
+    },
+    {
+        "id": 4,
+        "name": "Mr Squirt",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1786985457/MrSquirt.png",
+        "rarity": "Common"
+    },
+    {
+        "id": 5,
+        "name": "Bald Boi",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1786985468/BaldBoi.png",
+        "rarity": "Common"
+    },
+    {
+        "id": 6,
+        "name": "Mr No Name",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1786986655/MrNoName.png",
+        "rarity": "Common"
+    },
+    {
+        "id": 7,
+        "name": "Mr Paper",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1786986695/MrPaper.png",
+        "rarity": "Common"
+    },
+    {
+        "id": 8,
+        "name": "Mrs Paper",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1786986747/MrsPaper.png",
+        "rarity": "Common"
+    },
+    {
+        "id": 9,
+        "name": "Joe",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1786986664/Joe.png",
+        "rarity": "Common"
+    },
+    {
+        "id": 10,
+        "name": "Top Hat Tom",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1786986756/TopHatTom.png",
+        "rarity": "Common"
+    },
+    {
+        "id": 11,
+        "name": "Mr Fries",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1786986671/MrFries.png",
+        "rarity": "Common"
+    },
+    {
+        "id": 12,
+        "name": "Mr Sprinkle",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1786986683/MrSprinkle.png",
+        "rarity": "Common"
+    }
+]
