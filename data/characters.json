@@ -70,5 +70,155 @@
         "name": "Mr Sprinkle",
         "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1786986683/MrSprinkle.png",
         "rarity": "Common"
+    },
+    {
+        "id": 13,
+        "name": "3D Mr Paper",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1786986710/3dMrPaper.png",
+        "rarity": "Uncommon"
+    },
+    {
+        "id": 14,
+        "name": "Little Man",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1787076468/LittleMan.png",
+        "rarity": "Uncommon"
+    },
+    {
+        "id": 15,
+        "name": "The General",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1792932877/TheGeneral.png",
+        "rarity": "Uncommon"
+    },
+    {
+        "id": 16,
+        "name": "Camera Mouse 3000",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1792932872/CameraMouse3000.png",
+        "rarity": "Uncommon"
+    },
+    {
+        "id": 17,
+        "name": "Jeffina",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1792932874/Jeffina.png",
+        "rarity": "Uncommon"
+    },
+    {
+        "id": 18,
+        "name": "Chicken Lad",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1792932872/ChickenLad.png",
+        "rarity": "Uncommon"
+    },
+    {
+        "id": 19,
+        "name": "Handsome Duck",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1792932874/HandsomeDuck.png",
+        "rarity": "Uncommon"
+    },
+    {
+        "id": 20,
+        "name": "Disguised Mr Paper",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1792932873/DisguisedMrPaper.png",
+        "rarity": "Uncommon"
+    },
+    {
+        "id": 21,
+        "name": "Mr Monke",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1792932875/MrMonke.png",
+        "rarity": "Uncommon"
+    },
+    {
+        "id": 22,
+        "name": "Mr Yes Internet",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1792932876/MrYesInternet.png",
+        "rarity": "Uncommon"
+    },
+    {
+        "id": 23,
+        "name": "The Halo",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1786986765/TheHalo.png",
+        "rarity": "Rare"
+    },
+    {
+        "id": 24,
+        "name": "Funsized",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1792934484/Funsized.png",
+        "rarity": "Rare"
+    },
+    {
+        "id": 25,
+        "name": "Mr Countdown",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1792934485/MrCountdown.png",
+        "rarity": "Rare"
+    },
+    {
+        "id": 26,
+        "name": "Printer",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1792934486/Printer.png",
+        "rarity": "Rare"
+    },
+    {
+        "id": 27,
+        "name": "Shredder",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1792934487/Shredder.png",
+        "rarity": "Rare"
+    },
+    {
+        "id": 28,
+        "name": "Famous Face",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1792934715/FamousFace.png",
+        "rarity": "Rare"
+    },
+    {
+        "id": 29,
+        "name": "Bronze Mr Paper",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1792934863/BronzeMrPaper.png",
+        "rarity": "Rare"
+    },
+    {
+        "id": 30,
+        "name": "Silver Mr Paper",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1792935833/SilverMrPaper.png",
+        "rarity": "Epic"
+    },
+    {
+        "id": 31,
+        "name": "Rat King",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1792935832/RatKing.png",
+        "rarity": "Epic"
+    },
+    {
+        "id": 32,
+        "name": "Mr Scissors",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1792935831/MrScissors.png",
+        "rarity": "Epic"
+    },
+    {
+        "id": 33,
+        "name": "Mr Pew Pew",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1792935830/MrPewPew.png",
+        "rarity": "Epic"
+    },
+    {
+        "id": 34,
+        "name": "Mr HTTP Error",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1792935829/MrHTTPError.png",
+        "rarity": "Epic"
+    },
+    {
+        "id": 35,
+        "name": "Bald Rob",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1792936305/BaldRob.png",
+        "rarity": "Legendary"
+    },
+    {
+        "id": 36,
+        "name": "Geff",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1792936306/Geff.png",
+        "rarity": "Legendary"
+    },
+    {
+        "id": 37,
+        "name": "Golden Mr Paper",
+        "image_url": "https://res.cloudinary.com/cwohba23/image/upload/v1792936307/TheGoldenMrPaper.png",
+        "rarity": "Legendary"
     }
 ]
