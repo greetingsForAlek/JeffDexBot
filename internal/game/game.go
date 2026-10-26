@@ -1,6 +1,7 @@
 package game
 
 import (
+	"math/rand/v2"
 	"strings"
 	"sync"
 
@@ -10,6 +11,7 @@ import (
 type Round struct {
 	Character models.Character
 	Active bool
+	Shiny bool
 }
 
 var (
@@ -22,10 +24,12 @@ func StartRound(channelID string) models.Character {
 	defer roundsMu.Unlock()
 
 	character := Random()
+	shiny := rand.IntN(100) < 15
 
 	rounds[channelID] = &Round {
 		Character: character,
 		Active: true,
+		Shiny: shiny,
 	}
 
 	return character
