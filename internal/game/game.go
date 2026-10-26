@@ -35,13 +35,13 @@ func StartRound(channelID string) models.Character {
 	return character
 }
 
-func Guess(channelID, guess string) (bool, bool, models.Character) {
+func Guess(channelID, guess string) (bool, bool, models.Character, bool) {
 	roundsMu.Lock()
 	defer roundsMu.Unlock()
 
 	round, exists := rounds[channelID]
 	if !exists || !round.Active {
-		return false, false, models.Character{}
+		return false, false, models.Character{}, false
 	}
 
 	if strings.EqualFold(
@@ -49,8 +49,8 @@ func Guess(channelID, guess string) (bool, bool, models.Character) {
 		strings.TrimSpace(round.Character.Name),
 	) {
 		round.Active = false
-		return true, true, round.Character
+		return true, true, round.Character, round.Shiny
 	}
 
-	return true, false, models.Character{}
+	return true, false, models.Character{}, false
 }
