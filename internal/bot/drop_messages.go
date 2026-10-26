@@ -1,5 +1,13 @@
 package bot
 
+import (
+	"fmt"
+	"math/rand/v2"
+
+	"github.com/bwmarrin/discordgo"
+	"github.com/greetingsForAlek/JeffDexBot/internal/game"
+)
+
 var dropMessages = []string {
 	"who is this rando?",
 	"wait a minute, who *ARE* you?",
@@ -21,4 +29,30 @@ var dropMessages = []string {
 	"only characters that are rare and above can appear in the shop.",
 	"well, well, well if it isn't...",
 	"look who finally decided to show up.",
+}
+
+func (b *Bot) sendDrop(s *discordgo.Session, channelID string) {
+	character := game.StartRound(channelID)
+
+	message := dropMessages[rand.IntN(len(dropMessages))]
+
+	_, err := s.ChannelMessageSendComplex(
+		channelID,
+		&discordgo.MessageSend{
+			Content: message,
+			Embeds: []*discordgo.MessageEmbed {
+				{
+					Title: "Who is this character?",
+					Description: "Rarity: **" + character.Rarity + "**",
+					Image: &discordgo.MessageEmbedImage{
+						URL: character.ImageURL,
+					},
+				},
+			},
+		},
+	)
+
+	if err != nil {
+		fmt.Println("Error sending character drop:", err)
+	}
 }
