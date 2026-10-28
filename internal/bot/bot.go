@@ -10,9 +10,10 @@ import (
 type Bot struct {
 	Session *discordgo.Session
 	DB *database.Database
+	DropChannelID string
 }
 
-func New(token string, db *database.Database) (*Bot, error) {
+func New(token string, db *database.Database, dropChannelID string) (*Bot, error) {
 	session, err := discordgo.New("Bot " + token)
 	if err != nil {
 		return nil, err
@@ -24,6 +25,7 @@ func New(token string, db *database.Database) (*Bot, error) {
 	b := &Bot {
 		Session: session,
 		DB: db,
+		DropChannelID: dropChannelID,
 	}
 
 	b.registerHandlers()
