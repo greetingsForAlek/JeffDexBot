@@ -95,7 +95,7 @@ func (b *Bot) Start() error {
 
 	fmt.Println("Bot is online!")
 
-	b.startDropScheduler()
+	b.dropSchedulerStop = b.startDropScheduler()
 
 	return nil
 }
