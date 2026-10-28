@@ -11,6 +11,7 @@ type Bot struct {
 	Session *discordgo.Session
 	DB *database.Database
 	DropChannelID string
+	dropSchedulerStop chan struct{}
 }
 
 func New(token string, db *database.Database, dropChannelID string) (*Bot, error) {
@@ -34,6 +35,10 @@ func New(token string, db *database.Database, dropChannelID string) (*Bot, error
 }
 
 func (b *Bot) Start() error {
+	if b.DropChannelID == "" {
+		return fmt.Errorf("DROP_CHANNEL_ID is not set")
+	}
+
 	err := b.Session.Open()
 	if err != nil {
 		return err
@@ -96,5 +101,9 @@ func (b *Bot) Start() error {
 }
 
 func (b *Bot) Stop() error {
+	if b.dropSchedulerStop != nil {
+		close(b.dropSchedulerStop)
+	}
+
 	return b.Session.Close()
 }
