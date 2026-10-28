@@ -23,6 +23,10 @@ func StartRound(channelID string) models.Character {
 	roundsMu.Lock()
 	defer roundsMu.Unlock()
 
+	if round, exists := rounds[channelID]; exists && round.Active {
+		return round.Character
+	}
+
 	character := Random()
 	shiny := rand.IntN(100) < 15
 
@@ -53,4 +57,12 @@ func Guess(channelID, guess string) (bool, bool, models.Character, bool) {
 	}
 
 	return true, false, models.Character{}, false
+}
+
+func HasActiveRound(channelID string) bool {
+	roundsMu.Lock()
+	defer roundsMu.Unlock()
+
+	round, exists := rounds[channelID]
+	return exists && round.Active
 }

@@ -32,6 +32,16 @@ var dropMessages = []string {
 }
 
 func (b *Bot) sendDrop(s *discordgo.Session, channelID string) {
+	if game.HasActiveRound(channelID) {
+		_, err := s.ChannelMessageSend(
+			channelID,
+			"The previous character escaped! A new drop is arriving...",
+		)
+		if err != nil {
+			fmt.Println("Error announcing expired character:", err)
+		}
+	}
+
 	character := game.StartRound(channelID)
 
 	message := dropMessages[rand.IntN(len(dropMessages))]
