@@ -66,6 +66,30 @@ func (d *Database) Init() error {
 		user_id PRIMARY KEY,
 		coins INTEGER DEFAULT 0
 	);
+
+	CREATE TABLE IF NOT EXISTS daily_shop (
+		character_id INTEGER NOT NULL,
+		shop_date TEXT NOT NULL,
+		price INTEGER NOT NULL,
+
+		PRIMARY KEY (character_id, shop_date),
+
+		FOREIGN KEY (character_id)
+			REFERENCES characters(id)
+			ON DELETE CASCADE
+	);
+
+	CREATE TABLE IF NOT EXISTS daily_shop_purchases (
+		user_id TEXT NOT NULL,
+		character_id INTEGER NOT NULL,
+		shop_date TEXT NOT NULL,
+
+		PRIMARY KEY (user_id, character_id, shop_date),
+
+		FOREIGN KEY (character_id)
+			REFERENCES characters(id)
+			ON DELETE CASCADE
+	);
 	`
 
 	_, err := d.DB.Exec(query)
