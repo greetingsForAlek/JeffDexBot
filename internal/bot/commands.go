@@ -212,6 +212,9 @@ func (b *Bot) handleInteraction(
 		if err != nil {
 			fmt.Println("error responding to index command: ", err)
 		}
+	
+	case "shop":
+		b.handleShop()
 	}
 }
 

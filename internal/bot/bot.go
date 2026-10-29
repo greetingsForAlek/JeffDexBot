@@ -65,6 +65,10 @@ func (b *Bot) Start() error {
 			Name: "index",
 			Description: "View your character collection progress",
 		},
+		{
+			Name: "shop",
+			Description: "View today's character shop",
+		},
 	}
 
 	for _, command := range commands {
