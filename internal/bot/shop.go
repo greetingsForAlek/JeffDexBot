@@ -2,6 +2,7 @@ package bot
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -91,9 +92,43 @@ func (b *Bot) handleShopButton(
 		return
 	}
 
-	respondEphemeral(
-		s,
-		i,
-		"Purchase processing isn't implemented yet.",
+	characterID, err := strconv.Atoi(
+		strings.TrimPrefix(customID, "shop_buy_"),
 	)
+	if err != nil {
+		respondEphemeral(s, i, "Invalid shop item.")
+		return
+	}
+
+	userID := i.Member.User.ID
+	if i.User != nil {
+		userID = i.User.ID
+	}
+
+	status, price, err := b.DB.BuyDailyShopCharacter(
+		userID,
+		characterID,
+	)
+	if err != nil {
+		fmt.Println("Error purchasing shop character:", err)
+		respondEphemeral(s, i, "Something went wrong with your purchase. Please try again later.")
+		return
+	}
+
+	switch status {
+	case "success":
+		respondEphemeral(
+			s,
+			i,
+			fmt.Sprintf("🎉 Purchase successful! You bought the character for 🪙 %d coins.", price),
+		)
+	case "not_available":
+		respondEphemeral(s, i, "That character isn't available in today's shop.")
+	case "already_bought":
+		respondEphemeral(s, i, "You've already purchased that shop listing today.")
+	case "insufficient_funds":
+		respondEphemeral(s, i, "You don't have enough coins to buy that character!")
+	default:
+		respondEphemeral(s, i, "Your purchase couldn't be completed.")
+	}
 }

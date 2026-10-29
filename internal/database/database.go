@@ -463,3 +463,82 @@ func (d *Database) GetDailyShop() ([]models.Character, map[int]int, map[int]bool
 
 	return stock, prices, nil, nil
 }
+
+func (d *Database) BuyDailyShopCharacter(
+	userID string,
+	characterID int,
+) (string, int, error) {
+	today := time.Now().Format("2006-01-02")
+
+	tx, err := d.DB.Begin()
+	if err != nil {
+		return "", 0, fmt.Errorf("begin purchase: %w", err)
+	}
+	defer tx.Rollback()
+
+	var price int
+	err = tx.QueryRow(`
+		SELECT price
+		FROM daily_shop
+		WHERE character_id = ? AND shop_date = ?;
+	`, characterID, today).Scan(&price)
+
+	if err == sql.ErrNoRows {
+		return "not_available", 0, nil
+	}
+
+	if err != nil {
+		return "", 0, fmt.Errorf("find shop item: %w", err)
+	}
+
+	result, err := tx.Exec(`
+		INSERT INTO daily_shop_purchases (user_id, character_id, shop_date)
+		VALUES (?, ?, ?)
+		ON CONFLICT(user_id, character_id, shop_date) DO NOTHING;
+	`, userID, characterID, today)
+	if err != nil {
+		return "", 0, fmt.Errorf("record shop purchase: %w", err)
+	}
+
+	inserted, err := result.RowsAffected()
+	if err != nil {
+		return "", 0, fmt.Errorf("check purchase record: %w", err)
+	}
+	if inserted == 0 {
+		return "already_bought", 0, nil
+	}
+
+	result, err = tx.Exec(`
+		UPDATE user_balances
+		SET coins = coins - ?
+		WHERE user_id = ? AND coins >= ?;
+	`, price, userID, price)
+	if err != nil {
+		return "", 0, fmt.Errorf("deduct purchase price: %w", err)
+	}
+
+	updated, err := result.RowsAffected()
+	if err != nil {
+		return "", 0, fmt.Errorf("check balance deduction: %w", err)
+	}
+
+	if updated == 0 {
+		return "insufficient_funds", 0, nil
+	}
+
+	_, err = tx.Exec(`
+		INSERT INTO collections (user_id, character_id)
+		VALUES (?, ?)
+		ON CONFLICT (user_id, character_id) DO NOTHING;
+	`, userID, characterID)
+
+	if err != nil {
+		return "", 0, fmt.Errorf("add purchased character: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return "", 0, fmt.Errorf("commit purchase: %w", err)
+	}
+
+	return "success", price, nil
+}
