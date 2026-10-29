@@ -7,7 +7,7 @@ import (
 
 func (b *Bot) startDropScheduler() chan struct{} {
 	stop := make(chan struct{})
-	ticker := time.NewTicker(1 * time.Minute)
+	ticker := time.NewTicker(60 * time.Minute)
 
 	go func() {
 		defer ticker.Stop()
