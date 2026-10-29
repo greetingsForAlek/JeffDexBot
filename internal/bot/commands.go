@@ -214,7 +214,7 @@ func (b *Bot) handleInteraction(
 		}
 	
 	case "shop":
-		b.handleShop()
+		b.handleShop(s, i)
 	}
 }
 
