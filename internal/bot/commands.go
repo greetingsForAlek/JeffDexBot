@@ -13,6 +13,7 @@ import (
 
 func (b *Bot) registerHandlers() {
 	b.Session.AddHandler(b.handleInteraction)
+	b.Session.AddHandler(b.handleShopButton)
 	b.Session.AddHandler(b.handleMessage)
 }
 

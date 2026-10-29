@@ -27,7 +27,10 @@ func (b *Bot) handleShop(
 		return
 	}
 
-	var description strings.Builder
+	var (
+		description strings.Builder
+		components []discordgo.MessageComponent
+	)
 
 	for _, character := range stock {
 		description.WriteString(
@@ -37,6 +40,19 @@ func (b *Bot) handleShop(
 				character.Rarity,
 				prices[character.ID],
 			),
+		)
+
+		components = append(
+			components, 
+			discordgo.ActionsRow{
+				Components: []discordgo.MessageComponent{
+					discordgo.Button{
+						Label: "Buy " + character.Name,
+						Style: discordgo.PrimaryButton,
+						CustomID: fmt.Sprintf("shop_buy_%d", character.ID),
+					},
+				},
+			},
 		)
 	}
 
@@ -52,6 +68,7 @@ func (b *Bot) handleShop(
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Embeds: []*discordgo.MessageEmbed{embed},
+				Components: components,
 			},
 		},
 	)
@@ -59,4 +76,24 @@ func (b *Bot) handleShop(
 	if err != nil {
 		fmt.Println("Error responding to shop command:", err)
 	}
+}
+
+func (b *Bot) handleShopButton(
+	s *discordgo.Session,
+	i *discordgo.InteractionCreate,
+) {
+	if i.Type != discordgo.InteractionMessageComponent {
+		return
+	}
+
+	customID := i.MessageComponentData().CustomID
+	if !strings.HasPrefix(customID, "shop_buy_") {
+		return
+	}
+
+	respondEphemeral(
+		s,
+		i,
+		"Purchase processing isn't implemented yet.",
+	)
 }
