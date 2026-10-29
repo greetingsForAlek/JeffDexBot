@@ -46,7 +46,13 @@ func main() {
 
 	game.SetCharacters(characters)
 
-	b, err := bot.New(token, db)
+	dropChannelID := os.Getenv("DROP_CHANNEL_ID")
+
+	if dropChannelID == "" {
+		panic("DROP_CHANNEL_ID is not set.")
+	}
+
+	b, err := bot.New(token, db, dropChannelID)
 	if err != nil {
 		panic(err)
 	}

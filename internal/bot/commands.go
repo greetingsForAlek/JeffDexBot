@@ -13,6 +13,7 @@ import (
 
 func (b *Bot) registerHandlers() {
 	b.Session.AddHandler(b.handleInteraction)
+	b.Session.AddHandler(b.handleShopButton)
 	b.Session.AddHandler(b.handleMessage)
 }
 
@@ -212,6 +213,9 @@ func (b *Bot) handleInteraction(
 		if err != nil {
 			fmt.Println("error responding to index command: ", err)
 		}
+	
+	case "shop":
+		b.handleShop(s, i)
 	}
 }
 
@@ -264,7 +268,7 @@ func (b *Bot) handleMessage(
 		return
 	}
 
-	hasRound, correct, character := game.Guess(
+	hasRound, correct, character, shiny := game.Guess(
 		m.ChannelID,
 		m.Content,
 	)
@@ -285,6 +289,24 @@ func (b *Bot) handleMessage(
 			"Sorry, something went wrong saving your character. Please try again later or feel free to create a support ticket.",
 		)
 		return
+	}
+
+	shinyReward := 0
+
+	if shiny {
+		shinyReward = game.ShinyReward(character.Rarity)
+
+		if shinyReward > 0 {
+			err := b.DB.AddCoins(m.Author.ID, shinyReward)
+			if err != nil {
+				fmt.Println("error awarding shiny bonus: ", err)
+				_, _ = s.ChannelMessageSend(
+					m.ChannelID,
+					"⚠️ You collected the character, but something went wrong awarding your shiny bonus. Please create a support ticket.",
+				)
+				return
+			}
+		}
 	}
 
 	var message string
@@ -308,6 +330,13 @@ func (b *Bot) handleMessage(
 		}
 
 		message = "🪙 " + m.Author.Username + " guessed correctly! They already own **" + character.Name + "**, so they earned **" + fmt.Sprint(reward) + " coins** for the duplicate!"
+	}
+
+	if shiny {
+		message += fmt.Sprintf(
+			"\n✨ **SHINY CHARACTER!** You earned an additonal **%d coins**! ✨",
+			shinyReward,
+		)
 	}
 
 	_, err = s.ChannelMessageSend(m.ChannelID, message)

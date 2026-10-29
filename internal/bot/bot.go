@@ -10,9 +10,11 @@ import (
 type Bot struct {
 	Session *discordgo.Session
 	DB *database.Database
+	DropChannelID string
+	dropSchedulerStop chan struct{}
 }
 
-func New(token string, db *database.Database) (*Bot, error) {
+func New(token string, db *database.Database, dropChannelID string) (*Bot, error) {
 	session, err := discordgo.New("Bot " + token)
 	if err != nil {
 		return nil, err
@@ -24,6 +26,7 @@ func New(token string, db *database.Database) (*Bot, error) {
 	b := &Bot {
 		Session: session,
 		DB: db,
+		DropChannelID: dropChannelID,
 	}
 
 	b.registerHandlers()
@@ -32,6 +35,10 @@ func New(token string, db *database.Database) (*Bot, error) {
 }
 
 func (b *Bot) Start() error {
+	if b.DropChannelID == "" {
+		return fmt.Errorf("DROP_CHANNEL_ID is not set")
+	}
+
 	err := b.Session.Open()
 	if err != nil {
 		return err
@@ -57,6 +64,10 @@ func (b *Bot) Start() error {
 		{
 			Name: "index",
 			Description: "View your character collection progress",
+		},
+		{
+			Name: "shop",
+			Description: "View today's character shop",
 		},
 	}
 
@@ -88,9 +99,15 @@ func (b *Bot) Start() error {
 
 	fmt.Println("Bot is online!")
 
+	b.dropSchedulerStop = b.startDropScheduler()
+
 	return nil
 }
 
 func (b *Bot) Stop() error {
+	if b.dropSchedulerStop != nil {
+		close(b.dropSchedulerStop)
+	}
+
 	return b.Session.Close()
 }
