@@ -3,8 +3,10 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"math/rand"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/greetingsForAlek/JeffDexBot/internal/models"
 	_ "modernc.org/sqlite"
@@ -352,4 +354,112 @@ func (d *Database) GetCollectedCharacterIDs(userID string) (map[int]bool, error)
 	}
 
 	return collected, nil
+}
+
+func (d *Database) GetDailyShop() ([]models.Character, map[int]int, map[int]bool, error) {
+	today := time.Now().Format("2006-01-02")
+
+	var count int
+	err := d.DB.QueryRow(`
+		SELECT COUNT(*)
+		FROM daily_shop
+		WHERE shop_date = ?;
+	`, today).Scan(&count)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("check daily shop: %w", err)
+	}
+
+	if count == 0 {
+		rows, err := d.DB.Query(`
+			SELECT id, name, image_url, rarity
+			FROM characters
+			WHERE rarity IN ('Rare', 'Epic', 'Legendary');
+		`)
+		if err != nil {
+			return nil, nil, nil, fmt.Errorf("get shop candidates: %w", err)
+		}
+
+		var candidates []models.Character
+		for rows.Next() {
+			var c models.Character
+			if err := rows.Scan(&c.ID, &c.Name, &c.ImageURL, &c.Rarity); err != nil {
+				rows.Close()
+				return nil, nil, nil, fmt.Errorf("scan shop candidate: %w", err)
+			}
+			candidates = append(candidates, c)
+		}
+		if err := rows.Err(); err != nil {
+			rows.Close()
+			return nil, nil, nil, fmt.Errorf("read shop candidates: %w", err)
+		}
+		rows.Close()
+
+		rand.Shuffle(len(candidates), func(i, j int) {
+			candidates[i], candidates[j] = candidates[j], candidates[i]
+		})
+
+		if len(candidates) > 5 {
+			candidates = candidates[:5]
+		}
+
+		tx, err := d.DB.Begin()
+		if err != nil {
+			return nil, nil, nil, fmt.Errorf("begin shop generation: %w", err)
+		}
+
+		for _, c := range candidates {
+			price := 0
+			switch c.Rarity {
+			case "Rare":
+				price = 250
+			case "Epic":
+				price = 500
+			case "Legendary":
+				price = 1000
+			}
+
+			_, err := tx.Exec(`
+				INSERT OR IGNORE INTO daily_shop (character_id, shop_date, price)
+				VALUES (?, ?, ?);
+			`, c.ID, today, price)
+			if err != nil {
+				tx.Rollback()
+				return nil, nil, nil, fmt.Errorf("save shop stock: %w", err)
+			}
+		}
+
+		if err := tx.Commit(); err != nil {
+			return nil, nil, nil, fmt.Errorf("commit shop stock: %w", err)
+		}
+	}
+
+	rows, err := d.DB.Query(`
+		SELECT c.id, c.name, c.image_url, c.rarity, s.price
+		FROM daily_shop s
+		JOIN characters c ON c.id = s.character_id
+		WHERE s.shop_date = ?
+		ORDER BY s.price, c.name;
+	`, today)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("load daily shop: %w", err)
+	}
+	defer rows.Close()
+
+	var stock []models.Character
+	prices := make(map[int]int)
+
+	for rows.Next() {
+		var c models.Character
+		var price int
+		if err := rows.Scan(&c.ID, &c.Name, &c.ImageURL, &c.Rarity, &price); err != nil {
+			return nil, nil, nil, fmt.Errorf("scan daily shop: %w", err)
+		}
+		stock = append(stock, c)
+		prices[c.ID] = price
+	}
+	if err := rows.Err(); err != nil {
+		return nil, nil, nil, fmt.Errorf("read daily shop: %w", err)
+	}
+
+	return stock, prices, nil, nil
 }
