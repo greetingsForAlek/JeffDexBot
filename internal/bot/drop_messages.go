@@ -8,6 +8,7 @@ import (
 	"github.com/greetingsForAlek/JeffDexBot/internal/game"
 )
 
+// all of the hourly drop messages
 var dropMessages = []string {
 	"who is this rando?",
 	"wait a minute, who *ARE* you?",
@@ -31,21 +32,28 @@ var dropMessages = []string {
 	"look who finally decided to show up.",
 }
 
+// send drop funciton
 func (b *Bot) sendDrop(s *discordgo.Session, channelID string) {
+	// check if there is an active round, warn the user that the active round is now over and that there will be a new one
 	if game.HasActiveRound(channelID) {
 		_, err := s.ChannelMessageSend(
 			channelID,
 			"The previous character escaped! A new drop is arriving...",
 		)
+
+		// error if needed
 		if err != nil {
 			fmt.Println("Error announcing expired character:", err)
 		}
 	}
 
+	// start a new round
 	character := game.StartRound(channelID)
 
+	// select a random drop message
 	message := dropMessages[rand.IntN(len(dropMessages))]
 
+	// send a message into the drop channel
 	_, err := s.ChannelMessageSendComplex(
 		channelID,
 		&discordgo.MessageSend{
@@ -62,6 +70,7 @@ func (b *Bot) sendDrop(s *discordgo.Session, channelID string) {
 		},
 	)
 
+	// error if required
 	if err != nil {
 		fmt.Println("Error sending character drop:", err)
 	}
