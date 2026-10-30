@@ -14,6 +14,7 @@ import (
 func (b *Bot) registerHandlers() {
 	b.Session.AddHandler(b.handleInteraction)
 	b.Session.AddHandler(b.handleShopButton)
+	b.Session.AddHandler(b.handleWhoIsThisButton)
 	b.Session.AddHandler(b.handleMessage)
 }
 
@@ -33,6 +34,18 @@ func (b *Bot) handleInteraction(
 	case "guess":
 		character := game.StartRound(i.ChannelID)
 
+		components := []discordgo.MessageComponent {
+			discordgo.ActionsRow{
+				Components: []discordgo.MessageComponent {
+					discordgo.Button {
+						Label: "Who is this?",
+						Style: discordgo.SecondaryButton,
+						CustomID: fmt.Sprintf("who_is_this_%s", character.Name),
+					},
+				},
+			},
+		}
+
 		err := s.InteractionRespond(
 			i.Interaction,
 			&discordgo.InteractionResponse{
@@ -47,6 +60,7 @@ func (b *Bot) handleInteraction(
 							},
 						},
 					},
+					Components: components,
 				},
 			},
 		)
@@ -513,4 +527,24 @@ func respondComponentError(
 	if err != nil {
 		fmt.Println("Error responding to index button:", err)
 	}
+}
+
+func (b *Bot) handleWhoIsThisButton(
+	s *discordgo.Session,
+	i *discordgo.InteractionCreate,
+) {
+	if i.Type != discordgo.InteractionMessageComponent {
+		return
+	}
+
+	customID := i.MessageComponentData().CustomID
+	if !strings.HasPrefix(customID, "who_is_this_") {
+		return
+	}
+
+	characterName := strings.TrimPrefix(customID, "who_is_this_")
+
+	message := fmt.Sprintf("Not sure who this character is? This is **%s**!", characterName)
+
+	respondEphemeral(s, i, message)
 }
