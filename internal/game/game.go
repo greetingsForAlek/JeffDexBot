@@ -23,10 +23,6 @@ func StartRound(channelID string) models.Character {
 	roundsMu.Lock()
 	defer roundsMu.Unlock()
 
-	if round, exists := rounds[channelID]; exists && round.Active {
-		return round.Character
-	}
-
 	character := Random()
 	shiny := rand.IntN(100) < 15
 
