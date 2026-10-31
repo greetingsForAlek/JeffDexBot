@@ -1,6 +1,9 @@
 package game
 
+// duplicate reward function
+// stores all the duplicate rewards
 func DuplicateReward(rarity string) int {
+	// switch the rarity and return the coins that will be awarded for a duplicate of that rarity
 	switch rarity {
 	case "Common":
 		return 10
@@ -17,7 +20,10 @@ func DuplicateReward(rarity string) int {
 	}
 }
 
+// shiny reward function
 func ShinyReward(rarity string) int {
+	// basically the same as the duplicate reward function
+	// switch the rarity and return the amount of coins that will be returned as a shiny reward for that rarity
 	switch rarity{
 	case "Common":
 		return 25
