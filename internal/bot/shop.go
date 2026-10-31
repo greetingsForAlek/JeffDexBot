@@ -137,6 +137,8 @@ func (b *Bot) handleShopButton(
 		return
 	}
 
+	fmt.Println("Shop purchase result:", status, "Price:", price)
+
 	// switch the status
 	switch status {
 	case "success": // success
