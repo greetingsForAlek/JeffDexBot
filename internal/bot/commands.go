@@ -26,8 +26,13 @@ func (b *Bot) handleInteraction(
 ) {
 	// interaction message component
 	if i.Type == discordgo.InteractionMessageComponent {
-		b.handleIndexButton(s, i)
-		return
+    	customID := i.MessageComponentData().CustomID
+
+    	if strings.HasPrefix(customID, "index_page_") {
+        	b.handleIndexButton(s, i)
+    	}
+
+    	return
 	}
 
 	// switch through the application command data
